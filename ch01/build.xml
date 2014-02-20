@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Professional Spring Security" default="deploy-local">
+	
+	<!-- PROPERTY VALUES -->
+	<property environment="env"/>
+	<property file="build.properties" />
+
+	<property name="web.dir" value="${basedir}/WebContent"/>
+	<property name="build.dir" location="${basedir}/build" />
+	<property name="build.lib.dir" location="${build.dir}/WEB-INF/lib" />
+	<property name="java.build.dir" location="${build.dir}/java" />
+	<property name="web.build.dir" value="${build.dir}/WEB-INF/classes"/>
+	<property name="dist.dir" location="${basedir}/dist" />
+	<property name="java.src.dir" location="${basedir}/src" />
+	<property name="conf.dir" location="${basedir}/conf" />
+	<property name="build.compiler" value="modern"/>
+
+	
+	<!-- CLASSPATH -->
+	<path id="compile.classpath">
+		<fileset dir="${build.lib.dir}">
+			<include name="**/*.jar"/>
+		</fileset>
+		<fileset dir="${tomcat.home}/lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+
+	
+	<!-- SETUP -->
+	<target name="init-clean">
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete file="${app.war}" />
+	</target>
+
+	<target name="init-mkdir" depends="init-clean">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${web.build.dir}" />
+		<mkdir dir="${dist.dir}" />
+	</target>
+
+	<target name="copy-web" depends="init-mkdir" description="Copy files from web root to build directory">
+			<copy todir="${build.dir}">
+				<fileset file="${web.dir}/**" />
+			</copy>
+	</target>
+	
+	<!-- VARIOUS JAVA MODULES -->
+	<target name="compile-web" depends="copy-web">
+			<javac destdir="${web.build.dir}" includeAntRuntime="false" debug="${doDebug}" encoding="UTF8">
+				<classpath refid="compile.classpath"/>
+				<src path="${java.src.dir}" />
+			</javac>
+		</target>
+
+	<target name="create-war">
+		<delete dir="${build.dir}/java" />
+		<mkdir dir="${dist.dir}/${environment}" />
+		<war destfile="${dist.dir}/${environment}/${app.war}" webxml="${build.dir}/WEB-INF/web.xml" compress="yes" level="9">
+			<fileset dir="${build.dir}">
+				<exclude name="WEB-INF/web.xml" />
+			</fileset>
+		</war>
+	</target>
+
+	<target name="move-war-tomcat-local">
+	
+		<copy todir="${tomcat.home}/webapps/">
+			<fileset file="${dist.dir}/${environment}/*.war" />
+		</copy>
+		
+	</target>
+	
+	<!-- LOCAL -->
+	<target name="build-local">
+		<echo level="info">Building WAR for local</echo>
+		<antcall target="compile-web" inheritAll="true">
+			<param name="doDebug" value="yes" />
+		</antcall>
+		<antcall target="copy-config-files" inheritAll="true">
+			<param name="environment" value="local" />
+		</antcall>
+		<antcall target="create-war">
+			<param name="environment" value="local" />
+		</antcall>
+	</target>
+		
+	<target name="deploy-local">
+		<antcall target="tomcat-stop" />
+		<antcall target="tomcat-clean" />
+		<antcall target="build-local" />
+		<antcall target="move-war-tomcat-local" >
+			<param name="environment" value="local"/>
+		</antcall>
+		<antcall target="tomcat-start" />
+	</target>
+	
+	<!-- COPY CONFIGURATION FILES TO APPROPRIATE DIRECTORIES -->
+	<target name="copy-config-files">
+		<copy file="${conf.dir}/${environment}/log4j.properties" todir="${build.dir}/WEB-INF/classes" verbose="true" overwrite="true"/>
+		<copy file="${conf.dir}/${environment}/application.properties" todir="${build.dir}/WEB-INF" verbose="true" overwrite="true" />
+	</target>
+
+
+	<!-- COMPILE MODULE COMMON TASK -->
+	<target name="compile-module">
+		<echo level="info">Compiling ${module} with debug = ${doDebug}</echo>
+		<mkdir dir="${java.build.dir}/${module}" />
+		<javac destdir="${java.build.dir}/${module}" includeAntRuntime="false" debug="${doDebug}" encoding="UTF8">
+			<classpath refid="compile.classpath"/>
+			<src path="${java.src.dir}/${module}" />
+		</javac>
+		<jar destfile="${build.lib.dir}/${app.name}-${module}.jar" basedir="${java.build.dir}/${module}"/>
+	</target>
+
+
+	<!-- TOMCAT TASKS -->
+	
+	<!-- Check whether Tomcat is running -->
+	  <target name="check-port" description="Check whether Tomcat is running">
+	    <echo message="Checking whether Tomcat is running"/>
+	    <condition property="tomcat.running">
+	      <socket server="${tomcat.host}" port="${tomcat.port}"/> 
+	    </condition>
+	  	<echo message="tomcat.running = ${tomcat.running}"/>
+	  </target>
+	
+	<!-- New way of doing a tomcat stop -->
+	<target name="tomcat-quit">
+		<echo message="stopping tomcat"/>
+		
+		<java jar="${tomcat.home}/bin/bootstrap.jar" fork="true" timeout="1000">
+			<jvmarg value="-Dcatalina.home=${tomcat.home}"/>
+			<arg line="stop"/>
+		</java>
+			
+	</target>
+	
+	<target name="tomcat-stop" description="Stop Tomcat if running">
+	        	
+		<condition property="tomcat.running">
+	      <socket server="${tomcat.host}" port="${tomcat.port}"/> 
+	    </condition>
+		
+		<antcall target="tomcat-stop1"/>
+			
+		<sleep seconds="2"/>
+		
+		<condition property="tomcat.running2">
+			<socket server="${tomcat.host}" port="${tomcat.port}"/> 
+		</condition>
+		
+		<antcall target="tomcat-stop2"/>
+		
+	</target>
+	
+	<target name="tomcat-stop1" if="tomcat.running">
+		<antcall target="tomcat-quit"/>
+	</target>
+	
+	<target name="tomcat-stop2" if="tomcat.running2">
+		<antcall target="tomcat-quit"/>
+	</target>
+	
+	<target name="delete-war">
+		<echo message="Deleting file: ${tomcat.home}/webapps/${app.war}"/>
+		<delete file="${tomcat.home}/webapps/${app.war}" />
+	</target>
+	
+	<target name="tomcat-clean">
+		<echo message="Deleting directory: ${tomcat.home}/webapps/${app.context}"/>
+		<delete dir="${tomcat.home}/webapps/${app.context}" />
+		
+		<echo message="Deleting directory: ${tomcat.home}/work/Catalina/localhost/${app.context}"/>
+		<delete dir="${tomcat.home}/work/Catalina/localhost/${app.context}" />
+		
+		<antcall target="delete-war"/>
+		
+	</target>
+	
+	<target name="tomcat-start-force" 
+			description="Start Tomcat always" >
+			
+			<echo message="Starting Tomcat"/>
+			
+		    <java jar="${tomcat.home}/bin/bootstrap.jar" fork="true">
+		        <jvmarg value="-Dcatalina.home=${tomcat.home}"/>
+		    	<jvmarg value="-Xdebug"/>
+				<jvmarg value="-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n"/>
+		    	<jvmarg value="-Xmx1g"/>
+		    	<jvmarg value="-Xms512m"/>
+		    	<jvmarg value="-XX:MaxPermSize=512m"/>
+		    </java>
+			
+		</target>
+	
+	<target name="tomcat-start" depends="check-port" 
+		description="Start Tomcat if it isn't running" unless="tomcat.running" >
+		
+		<echo message="Starting Tomcat"/>
+		
+	    <java jar="${tomcat.home}/bin/bootstrap.jar" fork="true">
+	        <jvmarg value="-Dcatalina.home=${tomcat.home}"/>
+	    	<jvmarg value="-Xdebug"/>
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n"/>
+	    	<jvmarg value="-Xmx1g"/>
+	    	<jvmarg value="-Xms512m"/>
+	    	<jvmarg value="-XX:MaxPermSize=512m"/>
+	    </java>
+		
+	</target>
+	
+	<target name="redeploy-war-local" 
+		description="Redeploy the app without restarting Tomcat">
+		
+		<antcall target="delete-war"/>
+		
+		<antcall target="build-local"/>
+		
+		<antcall target="move-war-tomcat-local" >
+			<param name="environment" value="local"/>
+		</antcall>
+	
+	</target>
+
+</project>
