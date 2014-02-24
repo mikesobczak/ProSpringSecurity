@@ -18,7 +18,7 @@
 			username-parameter="user_param" 
 			password-parameter="pass_param" 
 			/>
-			<!-- authentication-failure-handler-ref="serverErrorHandler" -->	
+		 
 	</security:http>
 
 	<security:authentication-manager>
@@ -31,8 +31,6 @@
 			</security:user-service>
 		</security:authentication-provider>
 	</security:authentication-manager>
-	
-	<bean id="serverErrorHandler" class="com.apress.pss.terrormovies.security.ServerErrorFailureHandler" />
 	
 <!-- 
 	<bean id="accessDecisionManager"
