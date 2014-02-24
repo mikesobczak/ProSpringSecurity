@@ -2,31 +2,39 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:security="http://www.springframework.org/schema/security"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
-	<security:http auto-config="true"
-		access-decision-manager-ref="accessDecisionManager">
-		<security:intercept-url pattern="/admin/*"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+	<security:http auto-config="true">
+		<security:intercept-url pattern="/admin/**/*"
 			access="ROLE_ADMIN" />
-		<security:intercept-url pattern="/movies/*"
-			access="ROLE_USER" />
-		<security:intercept-url pattern="/movies/*"
-			access="ROLE_GUEST" />
+			
+		<security:form-login 
+			login-page="/custom_login" 
+			authentication-failure-url="/custom_login?error"  
+			username-parameter="user_param" 
+			password-parameter="pass_param" 
+			/>
+			<!-- authentication-failure-handler-ref="serverErrorHandler" -->	
 	</security:http>
 
 	<security:authentication-manager>
 		<security:authentication-provider>
 			<security:user-service>
-				<security:user name="car" password="scarvarez"
-					authorities="ROLE_USER" />
-				<security:user name="mon" password="scarvarez"
+					
+				<security:user name="admin" password="admin"
 					authorities="ROLE_ADMIN" />
-				<security:user name="bea" password="scarvarez"
-					authorities="ROLE_GUEST" />
+					
 			</security:user-service>
 		</security:authentication-provider>
 	</security:authentication-manager>
-
+	
+	<bean id="serverErrorHandler" class="com.apress.pss.terrormovies.security.ServerErrorFailureHandler" />
+	
+<!-- 
 	<bean id="accessDecisionManager"
 		class="org.springframework.security.access.vote.AffirmativeBased">
 		<constructor-arg>
@@ -50,4 +58,7 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
 			</bean>
 		</constructor-arg>
 	</bean>
+	
+	 -->
+	
 </beans>
