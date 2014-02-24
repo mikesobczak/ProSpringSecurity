@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Professional Spring Security" default="deploy-local">
+<project name="Professional Spring Security - ch01" default="deploy-local">
 	
 	<!-- PROPERTY VALUES -->
 	<property environment="env"/>
