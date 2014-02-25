@@ -16,8 +16,11 @@
 %>
 
 	<form action="<c:url value='j_spring_security_check' />"  method="post">
-		Username<input type="text" name="user_param"/><br/>
-		Password<input type="text" name="pass_param"/><br/>
+		Username <input type="text" name="user_param"/><br/>
+		Password <input type="text" name="pass_param"/><br/>
+		
+		Remember me <input type="checkbox" name="_spring_security_remember_me" value="yes" />
+		
 		<input type="submit" value="submit"/>
 	</form>
 </body>

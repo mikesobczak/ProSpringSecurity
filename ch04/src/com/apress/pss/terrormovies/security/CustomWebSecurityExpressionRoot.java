@@ -13,7 +13,8 @@ public class CustomWebSecurityExpressionRoot extends WebSecurityExpressionRoot{
 	
 	public boolean isOver18(){
 		User user = (User)this.getPrincipal();
+		System.out.println("Age is: " + user.getAge());
 		return user.getAge() > 18;
 	}
-
+	
 }
