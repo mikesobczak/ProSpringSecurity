@@ -11,7 +11,7 @@ import com.apress.pss.terrormovies.model.User;
 
 @Controller
 @RequestMapping("/admin")
-public class AdminController {
+public class AdminControllerImpl {
 
 	@RequestMapping(method = RequestMethod.POST, value = "/movies")
 	@ResponseBody
