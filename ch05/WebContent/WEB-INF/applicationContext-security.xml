@@ -8,47 +8,15 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
 		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
 
-	<security:http auto-config="true" access-decision-manager-ref="accessDecisionManager">
+<!-- secured-annotations="enabled" -->
+<!-- jsr250-annotations="enabled" -->
+	<security:global-method-security jsr250-annotations="enabled" pre-post-annotations="enabled"/>
 	
-		<security:intercept-url pattern="/admin/*" access="ROLE_ADMIN" />
-			
-		<security:intercept-url pattern="/movies/*" access="ROLE_USER" />
-		
-		<security:intercept-url pattern="/movies/*" access="ROLE_GUEST" />
-		<!-- 
-		<security:intercept-url pattern="/j_spring_security_switch_user" access="hasRole('ROLE_ADMIN')"/>
-		
-		<security:intercept-url pattern="/j_spring_security_exit_user" access="hasRole('ROLE_ADMIN')"/>
-		-->
-		 
-		<security:remember-me key="terror-key" />
-		
-		<security:logout delete-cookies="JSESSIONID" success-handler-ref="logoutRedirectToAny"/>
-		
-		<security:custom-filter ref="switchUser" before="FILTER_SECURITY_INTERCEPTOR"/>
-			
-		<security:form-login 
-			login-page="/custom_login" 
-			authentication-failure-handler-ref="serverErrorHandler"
-			username-parameter="user_param" 
-			password-parameter="pass_param" 
-			/>
-			
-		<security:session-management>
-			<security:concurrency-control max-sessions="1"/>
-		</security:session-management>
-	
-	</security:http>
+	<security:http auto-config="true" />
 
 	<security:authentication-manager>
 		<security:authentication-provider user-service-ref="inMemoryUserServiceWithCustomUser" />
 	</security:authentication-manager>
-
-	<bean id="switchUser" class="org.springframework.security.web.authentication.switchuser.SwitchUserFilter">
-		<property name="userDetailsService" ref="inMemoryUserServiceWithCustomUser" />
-		<property name="targetUrl" value="/" />
-	
-	</bean>
 
 	<bean id="expressionHandler" class="com.apress.pss.terrormovies.security.CustomWebSecurityExpressionHandler" />
 
@@ -155,34 +123,6 @@
 	
 	</bean>
 	
-	<bean id="logoutRedirectToAny" class="org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler">
-		<property name="targetUrlParameter" value="redirectTo" />
-	</bean>
-	
-	<bean id="serverErrorHandler" class="com.apress.pss.terrormovies.security.ServerErrorFailureHandler" />
-	
-		<bean id="accessDecisionManager"
-		class="org.springframework.security.access.vote.AffirmativeBased">
-		<constructor-arg>
-			<list>
-				<ref bean="roleVoter" />
-			</list>
-		</constructor-arg>
-	</bean>
-
-	<bean id="roleVoter"
-		class="org.springframework.security.access.vote.RoleHierarchyVoter">
-		<constructor-arg>
-			<bean
-				class="org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl">
-				<property name="hierarchy">
-					<value>
-						ROLE_ADMIN > ROLE_USER
-						ROLE_USER > ROLE_GUEST
-					</value>
-				</property>
-			</bean>
-		</constructor-arg>
-	</bean>
+	<bean id="moviesService" class="com.apress.pss.terrormovies.service.MoviesServiceImpl"/>
 	
 </beans>

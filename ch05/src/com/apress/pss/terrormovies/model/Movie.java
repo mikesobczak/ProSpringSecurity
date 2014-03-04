@@ -17,6 +17,11 @@ public class Movie {
 
 	public String getBudget() {
 		return budget;
-	}	
+	}
+	
+	public String toString()
+	{
+		return "Title: " + this.getName() + "; Budget: " + this.getBudget();
+	}
 	
 }
