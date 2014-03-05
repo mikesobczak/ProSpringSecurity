@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+<!-- secured-annotations="enabled" -->
+<!-- jsr250-annotations="enabled" -->
+	<security:global-method-security 
+		secured-annotations="enabled" 
+		jsr250-annotations="enabled" 
+		pre-post-annotations="enabled">
+	
+	</security:global-method-security>
+	
+	<security:http auto-config="true" />
+
+	<security:authentication-manager alias="authenticationManager">
+		<security:authentication-provider user-service-ref="inMemoryUserServiceWithCustomUser" />
+	</security:authentication-manager>
+
+	<bean id="expressionHandler" 
+		class="com.apress.pss.terrormovies.security.CustomWebSecurityExpressionHandler" />
+
+	<bean id="inMemoryUserServiceWithCustomUser" class="com.apress.pss.terrormovies.spring.CustomInMemoryUserDetailsManager">
+	
+		<constructor-arg>
+		
+			<list>
+			
+				<bean class="com.apress.pss.terrormovies.model.User">
+				
+					<constructor-arg value="admin" />
+					<constructor-arg value="admin" />
+					
+					<constructor-arg>
+					
+						<list>
+						
+							<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+								<constructor-arg value="ROLE_ADMIN"/>
+							</bean>
+						
+						</list>
+					
+					</constructor-arg>
+					
+					<constructor-arg value="Scarioni"/>
+					<constructor-arg value="19" />
+				
+				</bean>
+				
+				<bean class="com.apress.pss.terrormovies.model.User">
+				
+					<constructor-arg value="paco" />
+					<constructor-arg value="tous" />
+					
+					<constructor-arg>
+					
+						<list>
+						
+							<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+								<constructor-arg value="ROLE_USER"/>
+							</bean>
+						
+						</list>
+					
+					</constructor-arg>
+					
+					<constructor-arg value="Miranda"/>
+					<constructor-arg value="20" />
+				
+				</bean>
+				
+				<bean class="com.apress.pss.terrormovies.model.User">
+				
+					<constructor-arg value="lucas" />
+					<constructor-arg value="fernandez" />
+					
+					<constructor-arg>
+					
+						<list>
+						
+							<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+								<constructor-arg value="ROLE_VIP"/>
+							</bean>
+							<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+								<constructor-arg value="ROLE_USER"/>
+							</bean>
+						
+						</list>
+					
+					</constructor-arg>
+					
+					<constructor-arg value="Silva"/>
+					<constructor-arg value="20" />
+				
+				</bean>
+				
+				<bean class="com.apress.pss.terrormovies.model.User">
+				
+					<constructor-arg value="car" />
+					<constructor-arg value="scarvarez" />
+					
+					<constructor-arg>
+					
+						<list>
+						
+							<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+								<constructor-arg value="ROLE_USER"/>
+							</bean>
+						
+						</list>
+					
+					</constructor-arg>
+					
+					<constructor-arg value="Carvarez"/>
+					<constructor-arg value="21" />
+				
+				</bean>
+			
+			</list>
+		
+		</constructor-arg>
+	
+	</bean>
+	
+	<bean id="moviesService" class="com.apress.pss.terrormovies.service.MoviesServiceImpl">
+		<security:intercept-methods>
+			<security:protect
+				method="com.apress.pss.terrormovies.service.MoviesService.getAllMovies" 
+				access="ROLE_ADMIN" />
+		</security:intercept-methods>
+	</bean>
+	
+	<bean id="accessOperations"
+		class="com.apress.pss.terrormovies.access.AccessOperationsImpl" >
+	
+		<property name="authenticationManager" ref="authenticationManager" />	
+		
+	</bean>
+	
+</beans>
