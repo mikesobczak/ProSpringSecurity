@@ -15,8 +15,7 @@
 		<security:form-login/>
 	</security:http>
 	
-	<security:authentication-manager>
-	<!-- user-dn-pattern="(cn={0})" --> 
+	<security:authentication-manager> 
 			<security:ldap-authentication-provider 
 				user-search-filter="(userPrincipalName={0})" 
 				user-search-base="ou=Users,ou=Online Services" 
